@@ -8,6 +8,7 @@ using FourDigitCore.Domain.Enums;
 namespace FourDigitCore.Api.Controllers.Admin;
 
 [ApiController]
+[Route("api/admin/telemetry")]
 [Route("api/v1/admin/telemetry")]
 [Authorize]
 public class AdminTelemetryController : ControllerBase
@@ -36,6 +37,14 @@ public class AdminTelemetryController : ControllerBase
         if (!success) return NotFound(new { message = "Node not found." });
 
         return Ok(new { message = $"Node status updated to {status}." });
+    }
+
+    [HttpGet("announcements")]
+    [ProducesResponseType(typeof(List<MaintenanceAnnouncement>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAnnouncements(CancellationToken cancellationToken)
+    {
+        var announcements = await _adminService.GetAnnouncementsAsync(cancellationToken);
+        return Ok(announcements);
     }
 
     [HttpPost("announcements")]

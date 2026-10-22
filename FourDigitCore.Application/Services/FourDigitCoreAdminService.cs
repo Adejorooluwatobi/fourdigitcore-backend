@@ -48,6 +48,7 @@ public interface IFourDigitCoreAdminService
     // Telemetry & Maintenance
     Task<List<TelemetryNode>> GetTelemetryNodesAsync(CancellationToken cancellationToken = default);
     Task<bool> UpdateNodeStatusAsync(Guid id, ClusterStatus status, CancellationToken cancellationToken = default);
+    Task<List<MaintenanceAnnouncement>> GetAnnouncementsAsync(CancellationToken cancellationToken = default);
     Task<MaintenanceAnnouncement> CreateAnnouncementAsync(UpsertAnnouncementDto dto, CancellationToken cancellationToken = default);
     Task<bool> UpdateAnnouncementAsync(Guid id, UpsertAnnouncementDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteAnnouncementAsync(Guid id, CancellationToken cancellationToken = default);
@@ -560,6 +561,14 @@ public class FourDigitCoreAdminService : IFourDigitCoreAdminService
         node.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<List<MaintenanceAnnouncement>> GetAnnouncementsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.MaintenanceAnnouncements
+            .AsNoTracking()
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<MaintenanceAnnouncement> CreateAnnouncementAsync(UpsertAnnouncementDto dto, CancellationToken cancellationToken = default)

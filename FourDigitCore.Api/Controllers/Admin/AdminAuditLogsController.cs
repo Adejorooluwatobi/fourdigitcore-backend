@@ -6,6 +6,7 @@ using FourDigitCore.Domain.Entities;
 namespace FourDigitCore.Api.Controllers.Admin;
 
 [ApiController]
+[Route("api/admin/audit-logs")]
 [Route("api/v1/admin/audit-logs")]
 [Authorize]
 public class AdminAuditLogsController : ControllerBase
