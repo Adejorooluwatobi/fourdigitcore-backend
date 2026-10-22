@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6174 Attractor Core — Admin Invitation & Account Activation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: rgba(11, 17, 32, 0.85);
+      --card-border: rgba(56, 189, 248, 0.18);
+      --card-border-glow: rgba(56, 189, 248, 0.4);
+      --cyan: #38bdf8;
+      --cyan-dim: #0284c7;
+      --cyan-glow: rgba(56, 189, 248, 0.2);
+      --emerald: #10b981;
+      --emerald-dim: rgba(16, 185, 129, 0.15);
+      --rose: #f43f5e;
+      --rose-dim: rgba(244, 63, 94, 0.15);
+      --amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --input-bg: rgba(15, 23, 42, 0.75);
+      --input-border: #1e293b;
+      --input-focus: #38bdf8;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 65%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+      color: var(--text-main);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow elements */
+    .ambient-glow {
+      position: fixed;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: float 14s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(-30px, -20px); }
+      50% { transform: translate(30px, 20px); }
+    }
+
+    /* Main Container */
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    /* Brand Header */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .brand-badge .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: blink 2s infinite ease-in-out;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .brand-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Glass Card */
+    .activation-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 35px var(--cyan-glow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: all 0.3s ease;
+    }
+
+    /* State Panels */
+    .state-panel {
+      display: none;
+    }
+    .state-panel.active {
+      display: block;
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Loading Spinner */
+    .spinner-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0;
+      gap: 20px;
+    }
+
+    .orbit-spinner {
+      position: relative;
+      width: 64px;
+      height: 64px;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      inset: 0;
+      border: 2px solid transparent;
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    .orbit-ring:nth-child(2) {
+      inset: 6px;
+      border-top-color: #60a5fa;
+      animation: spin 1.6s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
+    }
+
+    .orbit-ring:nth-child(3) {
+      inset: 12px;
+      border-top-color: #38bdf8;
+      opacity: 0.6;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+    }
+
+    .loading-subtext {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Inviter Banner */
+    .inviter-banner {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-left: 3px solid var(--cyan);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .inviter-banner strong {
+      color: var(--text-main);
+    }
+
+    .role-badge-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--cyan);
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+
+    .form-label .badge-imm {
+      font-size: 10px;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-family: var(--sans);
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .form-input:read-only {
+      background: rgba(15, 23, 42, 0.4);
+      color: var(--text-dim);
+      cursor: not-allowed;
+      border-color: rgba(30, 41, 59, 0.6);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .input-toggle-btn {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .input-toggle-btn:hover {
+      color: var(--cyan);
+    }
+
+    /* Password Requirements checklist (inspired by GRITS) */
+    .password-checklist {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+      transition: all 0.2s;
+    }
+
+    .check-item.valid {
+      color: var(--emerald);
+    }
+
+    .check-item .indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      transition: all 0.2s;
+    }
+
+    .check-item.valid .indicator {
+      border-color: var(--emerald);
+      background: var(--emerald);
+      color: #030712;
+      font-weight: 800;
+    }
+
+    /* Match indicator */
+    .match-status {
+      font-size: 11px;
+      font-family: var(--mono);
+      margin-top: 6px;
+      display: none;
+    }
+
+    .match-status.match {
+      display: block;
+      color: var(--emerald);
+    }
+
+    .match-status.mismatch {
+      display: block;
+      color: var(--rose);
+    }
+
+    /* Action Buttons */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      color: #030712;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
+      transition: all 0.2s ease;
+      margin-top: 24px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+      filter: brightness(1.05);
+    }
+
+    .btn-submit:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      margin-top: 12px;
+      text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Alert Banner */
+    .alert-banner {
+      background: var(--rose-dim);
+      border: 1px solid var(--rose);
+      color: #fecdd3;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .alert-banner.show {
+      display: flex;
+    }
+
+    /* Error and Success States */
+    .status-icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .status-icon-wrap.error {
+      background: var(--rose-dim);
+      border: 2px solid var(--rose);
+      color: var(--rose);
+    }
+
+    .status-icon-wrap.success {
+      background: var(--emerald-dim);
+      border: 2px solid var(--emerald);
+      color: var(--emerald);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+    }
+
+    .status-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .status-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .countdown-pill {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--cyan);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      margin: 10px 0 20px;
+    }
+
+    /* Footer */
+    .footer-note {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .footer-note span {
+      color: var(--cyan);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+    <!-- Brand Header -->
+    <div class="brand-header">
+      <div class="brand-badge">
+        <span class="pulse-dot"></span>
+        <span>6174 Attractor Control Plane</span>
+      </div>
+      <h1 class="brand-title">Administrative Activation</h1>
+    </div>
+
+    <!-- Activation Card -->
+    <div class="activation-card">
+
+      <!-- Alert Banner (dynamic error display) -->
+      <div id="error-alert" class="alert-banner">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span id="error-alert-msg">Error details will appear here.</span>
+      </div>
+
+      <!-- STATE 1: LOADING -->
+      <div id="state-loading" class="state-panel active">
+        <div class="spinner-wrap">
+          <div class="orbit-spinner">
+            <div class="orbit-ring"></div>
+            <div class="orbit-ring"></div>
+            <div class="orbit-ring"></div>
+          </div>
+          <div class="loading-text">VALIDATING INVITATION TOKEN...</div>
+          <div class="loading-subtext">Verifying cryptographic hash against FourDigitCore security authority</div>
+        </div>
+      </div>
+
+      <!-- STATE 2: VALID FORM -->
+      <div id="state-valid" class="state-panel">
+        <div class="inviter-banner">
+          Invited by <strong id="inviter-name">System Administrator</strong> to administer the 6174 Attractor platform with 
+          <span id="role-badge" class="role-badge-tag">SuperAdmin</span> privileges.
+        </div>
+
+        <form id="activation-form" onsubmit="handleAcceptInvitation(event)">
+          <div class="form-group">
+            <label class="form-label">
+              <span>Admin Email</span>
+              <span class="badge-imm">IMMUTABLE</span>
+            </label>
+            <div class="input-wrapper">
+              <input type="email" id="email-input" class="form-input" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <div class="input-wrapper">
+              <input type="text" id="fullname-input" class="form-input" required placeholder="Enter your full name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Create Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="password-input" class="form-input" required placeholder="••••••••••••" oninput="checkPasswordRules()">
+              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('password-input')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Password Requirements checklist (inspired by GRITS) -->
+            <div class="password-checklist">
+              <div id="rule-length" class="check-item">
+                <span class="indicator">✓</span>
+                <span>8+ Characters</span>
+              </div>
+              <div id="rule-upper" class="check-item">
+                <span class="indicator">✓</span>
+                <span>1 Uppercase (A-Z)</span>
+              </div>
+              <div id="rule-lower" class="check-item">
+                <span class="indicator">✓</span>
+                <span>1 Lowercase (a-z)</span>
+              </div>
+              <div id="rule-number" class="check-item">
+                <span class="indicator">✓</span>
+                <span>1 Number (0-9)</span>
+              </div>
+              <div id="rule-symbol" class="check-item" style="grid-column: span 2;">
+                <span class="indicator">✓</span>
+                <span>1 Special Symbol (!@#$%^&*)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="confirm-password-input" class="form-input" required placeholder="••••••••••••" oninput="checkPasswordMatch()">
+              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('confirm-password-input')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <div id="match-status" class="match-status"></div>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn-submit" disabled>
+            <span>Activate Account & Launch Portal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- STATE 3: ERROR -->
+      <div id="state-error" class="state-panel">
+        <div class="status-icon-wrap error">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <h2 class="status-title">Invitation Unavailable</h2>
+        <p id="error-message-text" class="status-desc">
+          This invitation link is invalid, expired, or has already been accepted.
+        </p>
+        <a href="/" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Return to Portal</span>
+        </a>
+      </div>
+
+      <!-- STATE 4: SUCCESS -->
+      <div id="state-success" class="state-panel">
+        <div class="status-icon-wrap success">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2 class="status-title">Access Granted</h2>
+        <p class="status-desc">
+          Your administrative account has been cryptographically provisioned and activated.
+        </p>
+
+        <div style="text-align: center;">
+          <div class="countdown-pill">
+            Redirecting to Control Plane in <span id="redirect-timer">3</span>s...
+          </div>
+        </div>
+
+        <a id="portal-redirect-btn" href="/" class="btn-submit" style="text-decoration: none;">
+          <span>Enter Control Plane Now</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Security Subsystem Footer -->
+    <div class="footer-note">
+      FOURDIGITCORE 6174 • <span>ZERO-TRUST IDENTITY SUBSYSTEM</span> • SHA-256 VERIFIED
+    </div>
+  </div>
+
+  <script>
+    // Configuration & State
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const apiBase = window.location.origin;
+
+    let invitationDetails = null;
+    let isSubmitting = false;
+
+    // Switch visible state panel
+    function setState(stateName) {
+      document.querySelectorAll('.state-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById(`state-${stateName}`);
+      if (activePanel) activePanel.classList.add('active');
+    }
+
+    function showErrorAlert(message) {
+      const alert = document.getElementById('error-alert');
+      const msg = document.getElementById('error-alert-msg');
+      if (alert && msg) {
+        msg.textContent = message;
+        alert.classList.add('show');
+      }
+    }
+
+    function hideErrorAlert() {
+      const alert = document.getElementById('error-alert');
+      if (alert) alert.classList.remove('show');
+    }
+
+    function togglePasswordVisibility(fieldId) {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        field.type = field.type === 'password' ? 'text' : 'password';
+      }
+    }
+
+    // Live Password Validation (GRITS Model)
+    function checkPasswordRules() {
+      const password = document.getElementById('password-input').value;
+      
+      const hasLength = password.length >= 8;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      const hasSymbol = /[^A-Za-z0-9]/.test(password);
+
+      toggleRule('rule-length', hasLength);
+      toggleRule('rule-upper', hasUpper);
+      toggleRule('rule-lower', hasLower);
+      toggleRule('rule-number', hasNumber);
+      toggleRule('rule-symbol', hasSymbol);
+
+      checkPasswordMatch();
+    }
+
+    function toggleRule(elementId, isValid) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (isValid) {
+        el.classList.add('valid');
+      } else {
+        el.classList.remove('valid');
+      }
+    }
+
+    function checkPasswordMatch() {
+      const pwd = document.getElementById('password-input').value;
+      const confirmPwd = document.getElementById('confirm-password-input').value;
+      const statusEl = document.getElementById('match-status');
+      const submitBtn = document.getElementById('submit-btn');
+
+      const isComplexityValid = pwd.length >= 8 &&
+        /[A-Z]/.test(pwd) &&
+        /[a-z]/.test(pwd) &&
+        /[0-9]/.test(pwd) &&
+        /[^A-Za-z0-9]/.test(pwd);
+
+      if (!confirmPwd) {
+        statusEl.className = 'match-status';
+        statusEl.textContent = '';
+        submitBtn.disabled = true;
+        return;
+      }
+
+      if (pwd === confirmPwd) {
+        statusEl.className = 'match-status match';
+        statusEl.textContent = '✓ Passwords match';
+        submitBtn.disabled = !isComplexityValid || isSubmitting;
+      } else {
+        statusEl.className = 'match-status mismatch';
+        statusEl.textContent = '✕ Passwords do not match';
+        submitBtn.disabled = true;
+      }
+    }
+
+    // Step 1: Validate Token on Mount
+    async function validateTokenOnLoad() {
+      if (!token || token.trim() === '') {
+        document.getElementById('error-message-text').textContent = 'Invitation token is missing from the URL. Please click the link directly from your invitation email.';
+        setState('error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/api/admin/auth/invitation-info?token=${encodeURIComponent(token.trim())}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          document.getElementById('error-message-text').textContent = errData.message || 'Unable to communicate with the verification subsystem.';
+          setState('error');
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!data.isValid) {
+          document.getElementById('error-message-text').textContent = data.errorMessage || 'This invitation has expired or has already been accepted.';
+          setState('error');
+          return;
+        }
+
+        // Successfully verified
+        invitationDetails = data;
+        document.getElementById('email-input').value = data.email || '';
+        document.getElementById('fullname-input').value = data.fullName || '';
+        document.getElementById('inviter-name').textContent = data.invitedByAdminName || 'System SuperAdmin';
+        document.getElementById('role-badge').textContent = data.assignedRole || 'SystemAdmin';
+
+        setState('valid');
+      } catch (err) {
+        console.error('Validation error:', err);
+        document.getElementById('error-message-text').textContent = 'Network or connection error. Ensure the FourDigitCore backend service is active.';
+        setState('error');
+      }
+    }
+
+    // Step 2: Submit Acceptance
+    async function handleAcceptInvitation(event) {
+      event.preventDefault();
+      hideErrorAlert();
+
+      const password = document.getElementById('password-input').value;
+      const confirmPassword = document.getElementById('confirm-password-input').value;
+      const submitBtn = document.getElementById('submit-btn');
+
+      if (password !== confirmPassword) {
+        showErrorAlert('Passwords do not match.');
+        return;
+      }
+
+      isSubmitting = true;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <div class="orbit-spinner" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:8px;">
+          <div class="orbit-ring" style="border-width:1.5px;"></div>
+        </div>
+        <span>Cryptographically Activating...</span>
+      `;
+
+      try {
+        const payload = {
+          token: token.trim(),
+          password: password,
+          confirmPassword: confirmPassword
+        };
+
+        const response = await fetch(`${apiBase}/api/admin/auth/accept-invitation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          showErrorAlert(result.message || 'Failed to activate account. The invitation may be invalid or expired.');
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `
+            <span>Activate Account & Launch Portal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          `;
+          return;
+        }
+
+        // Store tokens securely in localStorage
+        if (result.token) {
+          localStorage.setItem('auth_token', result.token);
+          localStorage.setItem('refresh_token', result.refreshToken || '');
+          localStorage.setItem('admin_user', JSON.stringify({
+            email: result.email,
+            fullName: result.fullName,
+            roles: result.roles
+          }));
+        }
+
+        setState('success');
+
+        // Countdown timer redirect
+        let seconds = 3;
+        const timerEl = document.getElementById('redirect-timer');
+        const interval = setInterval(() => {
+          seconds--;
+          if (timerEl) timerEl.textContent = seconds;
+          if (seconds <= 0) {
+            clearInterval(interval);
+            window.location.href = '/';
+          }
+        }, 1000);
+
+      } catch (err) {
+        console.error('Acceptance error:', err);
+        showErrorAlert('An error occurred during submission. Please check your network connection.');
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <span>Activate Account & Launch Portal</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        `;
+      }
+    }
+
+    // Execute validation on page mount
+    window.addEventListener('DOMContentLoaded', validateTokenOnLoad);
+  </script>
+</body>
+</html>

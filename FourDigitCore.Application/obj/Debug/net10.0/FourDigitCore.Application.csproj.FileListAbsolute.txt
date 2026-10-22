@@ -1,0 +1,16 @@
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\bin\Debug\net10.0\FourDigitCore.Application.deps.json
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\bin\Debug\net10.0\FourDigitCore.Application.dll
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\bin\Debug\net10.0\FourDigitCore.Application.pdb
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\bin\Debug\net10.0\FourDigitCore.Domain.dll
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\bin\Debug\net10.0\FourDigitCore.Domain.pdb
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.csproj.AssemblyReference.cache
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.AssemblyInfoInputs.cache
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.AssemblyInfo.cs
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.csproj.CoreCompileInputs.cache
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.sourcelink.json
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigi.95E1A60A.Up2Date
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.dll
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\refint\FourDigitCore.Application.dll
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\FourDigitCore.Application.pdb
+C:\Development\PORTFOLIO\FourDigitCore\FourDigitCore.Application\obj\Debug\net10.0\ref\FourDigitCore.Application.dll

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="FourDigitCore.Api/FourDigitCore.Api.csproj" />
+  <Project Path="FourDigitCore.Application/FourDigitCore.Application.csproj" />
+  <Project Path="FourDigitCore.Domain/FourDigitCore.Domain.csproj" />
+  <Project Path="FourDigitCore.Infrastructure/FourDigitCore.Infrastructure.csproj" />
+  <Project Path="FourDigitCore.Test/FourDigitCore.Test.csproj" />
+</Solution>
